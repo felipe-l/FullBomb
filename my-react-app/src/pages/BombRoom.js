@@ -1,21 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import Player from '../components/Player';
 import UsernameModal from './UsernameModal';
+import io from 'socket.io-client';
 
 const BombRoom = () => {
 
   const [username, setUsername] = useState('');
   const [showModal, setShowModal] = useState(false);
+	const [response, setResponse] = useState('');
+
+
+	useEffect(() => {
+		const socket = io("http://localhost:5000");
+		socket.on('message', (data) => {
+			setResponse(data.response);
+		})
+	}, []);
 
   useEffect(() => {
-	// Check if the username is already stored in local storage
-	const storedUsername = localStorage.getItem('username');
-	if (storedUsername) {
-	  setUsername(storedUsername);
-	} else {
-	  // If no username is stored, show the modal
-	  setShowModal(true);
-	}
+		// Check if the username is already stored in local storage
+		const storedUsername = localStorage.getItem('username');
+		if (storedUsername) {
+			setUsername(storedUsername);
+		} else {
+			// If no username is stored, show the modal
+			setShowModal(true);
+		}
   }, []);
 
   useEffect(() => {
