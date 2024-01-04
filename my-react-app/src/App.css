@@ -1,4 +1,26 @@
+/* src/App.css */
+
 .App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.bomb {
+  width: 50px;
+  height: 50px;
+  background-color: #e74c3c;
+  border-radius: 50%;
+  margin-bottom: 20px;
+}
+
+.players {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}.App {
   text-align: center;
 }
 
@@ -14,7 +36,7 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #0bdf40;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -36,3 +58,8 @@
     transform: rotate(360deg);
   }
 }
+
+
+@tailwindcss base;
+@tailwindcss components;
+@tailwindcss utilities;
