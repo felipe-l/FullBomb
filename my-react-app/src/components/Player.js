@@ -29,7 +29,7 @@ const Player = ({ user, users, index, username, socket}) => {
   }, [inputValue]);
 
   return (
-    <div className="player">
+    <div className="player" key={user.id}>
 			<div
 				className="absolute top-0 left-0"
 				style={{

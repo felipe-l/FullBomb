@@ -27,6 +27,12 @@ const BombRoom = () => {
 			console.log(data.users);
 			setUsers(data.users);
 		})
+		socket.current.on('player_turn', (data) => {
+			console.log("TURNNAME" + data.player_turn.username);
+			const playerIndex = users.findIndex(user => user.id === data.player_turn.id);
+			setCurrentPlayerIndex(playerIndex);
+			console.log("TURNINDEX" + playerIndex);
+		})
 		if (username !== "") {
 			socket.current.emit('change_username', {username: username});
 		}
@@ -49,20 +55,7 @@ const BombRoom = () => {
 				setShowModal(true);
 			}
 	}, []);
-		// Add socket to send list of players
-	useEffect(() => {
-			if (username !== "") {
-				addUser(username)
-			}
-	}, [username])
 
-	useEffect(() => {
-		console.log("CURRENT" + currentPlayerIndex);
-		const interval = setInterval(() => {
-			setCurrentPlayerIndex((currentPlayerIndex+1) % users.length);
-		}, 3000);
-		return () => clearInterval(interval);
-	}, [currentPlayerIndex, users]);
 
 	const handleLogout = () => {
 	// Clear the username from localStorage
@@ -107,8 +100,8 @@ const BombRoom = () => {
 					<img src={process.env.PUBLIC_URL + "/arrow1.png"} alt="arrow" className="w-full h-full" style={{position: 'absolute'}} />
 				</div>
 			)}
-			
 
+			{console.log("All users: ", users)}
 			{users.map((user, index) => (
 				<Player key={user.id} user={user} users={users} index={index} username={username} socket={socket} />
 			))}
