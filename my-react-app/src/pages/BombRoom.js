@@ -108,6 +108,7 @@ const BombRoom = () => {
 				</div>
 			)}
 			
+
 			{users.map((user, index) => (
 				<Player key={user.id} user={user} users={users} index={index} username={username} socket={socket} />
 			))}
