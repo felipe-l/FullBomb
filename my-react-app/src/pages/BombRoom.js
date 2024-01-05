@@ -27,16 +27,9 @@ const BombRoom = () => {
 			console.log(data.users);
 			setUsers(data.users);
 		})
-		socket.current.on('player_turn', (data) => {
-			console.log("TURNNAME" + data.player_turn.username);
-			const playerIndex = users.findIndex(user => user.id === data.player_turn.id);
-			setCurrentPlayerIndex(playerIndex);
-			console.log("TURNINDEX" + playerIndex);
-		})
 		if (username !== "") {
 			socket.current.emit('change_username', {username: username});
 		}
-
 		return () => {
 			if (socket.current) {
 				socket.current.disconnect();
@@ -46,7 +39,21 @@ const BombRoom = () => {
 	}, [username]);
 
 	useEffect(() => {
-			// Check if the username is already stored in local storage
+		socket.current.on('player_turn', (data) => {
+			let playerIndex = -1;
+			for (let i = 0; i < users.length; i++) {
+				if (users[i].id == data.player_turn.id) {
+					playerIndex = i;
+					break;
+				}
+			}
+			setCurrentPlayerIndex(playerIndex);
+		})
+		
+	}, [users]);
+
+	useEffect(() => {
+			// Check if the username is already stored in local storag
 			const storedUsername = localStorage.getItem('username');
 			if (storedUsername) {
 				setUsername(storedUsername);
