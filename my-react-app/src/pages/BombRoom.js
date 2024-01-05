@@ -19,8 +19,12 @@ const BombRoom = () => {
 			setResponse(data.response);
 		})
 		socket.current.on('user_joined', (data) => {
+			console.log(data.users);
 			setUsers(data.users);
 		})
+		if (username !== "") {
+			socket.current.emit('change_username', {username: username});
+		}
 
 		return () => {
 			if (socket.current) {
@@ -28,7 +32,7 @@ const BombRoom = () => {
 				socket.current = null;
 			}
 		};
-	}, []);
+	}, [username]);
 
 	useEffect(() => {
 			// Check if the username is already stored in local storage
@@ -47,14 +51,14 @@ const BombRoom = () => {
 			}
 	}, [username])
 
-		const handleLogout = () => {
-		// Clear the username from localStorage
-			let pastUsername = localStorage.getItem('username');
-			removeUser(pastUsername);
-			localStorage.removeItem('username');
-			setShowModal(true);
-		// Update the state to reset the username
-			setUsername('');
+	const handleLogout = () => {
+	// Clear the username from localStorage
+		let pastUsername = localStorage.getItem('username');
+		removeUser(pastUsername);
+		localStorage.removeItem('username');
+		setShowModal(true);
+	// Update the state to reset the username
+		setUsername('');
 	};
 
 
@@ -82,16 +86,7 @@ const BombRoom = () => {
 			💣
 			</div>
 			{users.map((user, index) => (
-			<div
-				key={index}
-				className={`absolute bg-blue-500 p-2 rounded-full text-white`}
-				style={{
-				top: `${Math.sin((index / users.length) * 2 * Math.PI) * 300 + 26}%`,
-				left: `${Math.cos((index / users.length) * 2 * Math.PI) * 300}%`,
-				}}
-			>
-				{user}
-			</div>
+				<Player key={index} user={user} users={users} index={index} />
 			))}
 		</div>
 		{/* Example usage */}
