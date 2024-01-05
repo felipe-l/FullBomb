@@ -6,10 +6,11 @@ import io from 'socket.io-client';
 const BombRoom = () => {
 
 	const [username, setUsername] = useState('');
-	const [showModal, setShowModal] = useState(false);
+	const [showModal, setShowModal] = useState(false); 
 	const [response, setResponse] = useState('');
 	const [users, setUsers] = useState([]);
 	const socket = useRef(null);
+	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 
 	useEffect(() => {
 		if (!socket.current) {
@@ -19,6 +20,10 @@ const BombRoom = () => {
 			setResponse(data.response);
 		})
 		socket.current.on('user_joined', (data) => {
+			console.log(data.users);
+			setUsers(data.users);
+		})
+		socket.current.on('input_changed', (data) => {
 			console.log(data.users);
 			setUsers(data.users);
 		})
@@ -51,11 +56,21 @@ const BombRoom = () => {
 			}
 	}, [username])
 
+	useEffect(() => {
+		console.log("CURRENT" + currentPlayerIndex);
+		const interval = setInterval(() => {
+			setCurrentPlayerIndex((currentPlayerIndex+1) % users.length);
+		}, 3000);
+		return () => clearInterval(interval);
+	}, [currentPlayerIndex, users]);
+
 	const handleLogout = () => {
 	// Clear the username from localStorage
-		let pastUsername = localStorage.getItem('username');
-		removeUser(pastUsername);
-		localStorage.removeItem('username');
+		// let pastUsername = localStorage.getItem('username');
+		// removeUser(pastUsername);
+		// localStorage.removeItem('username');
+
+		removeUser(username);	
 		setShowModal(true);
 	// Update the state to reset the username
 		setUsername('');
@@ -82,11 +97,19 @@ const BombRoom = () => {
 		<div className="h-screen flex flex-col items-center justify-center">
 		<div className="relative">
 			{/* Bomb icon or any other representation */}
-			<div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white">
+			<div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white z-1">
 			💣
 			</div>
+			{/* Arrow pointing to the current player */}
+			{currentPlayerIndex !== null && (
+				<div className="w-64 h-64 absolute top-0 left-0"
+					style={{ transform: `rotate(${currentPlayerIndex * 360 / users.length}deg)`, position: 'absolute', marginLeft:"-150%", marginTop:"-150%", zIndex: -1, transformOrigin: '50%, 50%'}} >
+					<img src={process.env.PUBLIC_URL + "/arrow1.png"} alt="arrow" className="w-full h-full" style={{position: 'absolute'}} />
+				</div>
+			)}
+			
 			{users.map((user, index) => (
-				<Player key={index} user={user} users={users} index={index} />
+				<Player key={user.id} user={user} users={users} index={index} username={username} socket={socket} />
 			))}
 		</div>
 		{/* Example usage */}
@@ -96,7 +119,7 @@ const BombRoom = () => {
 		{showModal && <UsernameModal setUsername={setUsername} closeModal={closeModal} users={users} />}
 		</div>
 	);
-	};
+};
 
 
 export default BombRoom;

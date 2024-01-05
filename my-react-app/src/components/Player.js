@@ -3,21 +3,29 @@
 import React, { useState, useEffect } from 'react';
 import './player.css';
 
-const Player = ({ user, users, index }) => {
+const Player = ({ user, users, index, username, socket}) => {
   const [inputValue, setInputValue] = useState('');
-
+  console.log("index" + index)
   useEffect(() => {
-    const handleKeyPress = (event) => {
-      if (event.key.match(/^[a-zA-Z]+$/)) {
-        setInputValue(inputValue + event.key);
-      }
-    };
+    console.log(username + " " + user.username)
+    if (username == user.username) {
+      const handleKeyPress = (event) => { 
+        if (event.key === 'Enter') {
+          const finalGuess = inputValue;
+          setInputValue('');
+          socket.current.emit('change_inputValue', { inputValue: "" });
+        } else if (event.key.match(/^[a-zA-Z]+$/)) {
+          const updatedInputValue = inputValue + event.key;
+          setInputValue(updatedInputValue);
+          socket.current.emit('change_inputValue', { inputValue: updatedInputValue });
+        }
+      };
 
-    window.addEventListener('keypress', handleKeyPress);
-
-    return () => {
-      window.removeEventListener('keypress', handleKeyPress);
-    };
+      window.addEventListener('keypress', handleKeyPress);
+      return () => {
+        window.removeEventListener('keypress', handleKeyPress);
+      };
+    }
   }, [inputValue]);
 
   return (
@@ -29,7 +37,7 @@ const Player = ({ user, users, index }) => {
 				left: `${Math.cos((index / users.length) * 2 * Math.PI) * 300}%`,
 				}}
 			>
-				{inputValue}
+				{user.input}
 			</div>
 			<div
 				className={`absolute bg-blue-500 p-2 rounded-full text-white`}
@@ -39,7 +47,7 @@ const Player = ({ user, users, index }) => {
 				zIndex: -1,
 				}}
 			>
-				{user}
+				{user.username}
 			</div>
     </div>
   );

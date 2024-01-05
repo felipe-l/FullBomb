@@ -14,11 +14,11 @@ const UsernameModal = ({ setUsername, closeModal, users}) => {
   const handleSubmit = () => {
     if (inputValue === '') {
       setError('Username cannot be empty');
-    } else if (users.includes(inputValue)) {
+    } else if (users.some(user => user.username === inputValue)) {
       setError('Username already exists');
     } else {
       // Set the username in local storage or state
-      localStorage.setItem('username', inputValue);
+      //localStorage.setItem('username', inputValue);
       setUsername(inputValue);
       setError(null);
       // Close the modal
