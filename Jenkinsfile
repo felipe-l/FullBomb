@@ -19,7 +19,8 @@ pipeline {
         }
         stage('Run tests') {
             steps {
-                // Add your test commands here
+                // Run tests here
+                echo 'No tests to run'
             }
         }
     }
