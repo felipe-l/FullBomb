@@ -14,7 +14,7 @@ const BombRoom = () => {
 
 	useEffect(() => {
 		if (!socket.current) {
-			socket.current = io("http://localhost:5000");
+			socket.current = io("http://bombparty.online:5000");
 		}
 		socket.current.on('message', (data) => {
 			setResponse(data.response);
