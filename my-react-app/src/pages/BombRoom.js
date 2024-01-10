@@ -11,10 +11,11 @@ const BombRoom = () => {
 	const [users, setUsers] = useState([]);
 	const socket = useRef(null);
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
+	const [myTurn, setMyTurn] = useState(false);
 
 	useEffect(() => {
 		if (!socket.current) {
-			socket.current = io("http://bombparty.online:5000");
+			socket.current = io("http://localhost:5000");
 		}
 		socket.current.on('message', (data) => {
 			setResponse(data.response);
@@ -41,8 +42,12 @@ const BombRoom = () => {
 	useEffect(() => {
 		socket.current.on('player_turn', (data) => {
 			let playerIndex = -1;
+			
 			for (let i = 0; i < users.length; i++) {
 				if (users[i].id == data.player_turn.id) {
+					//If the turn id is ours, set myTurn to True.
+					setMyTurn(users[i].id === socket.current.id);
+					console.log("MY TURN = " + users[i].id + " " + socket.current.id + " " + (users[i].id === socket.current.id) + " " + myTurn);
 					playerIndex = i;
 					break;
 				}
@@ -110,7 +115,7 @@ const BombRoom = () => {
 
 			{console.log("All users: ", users)}
 			{users.map((user, index) => (
-				<Player key={user.id} user={user} users={users} index={index} username={username} socket={socket} />
+				<Player key={user.id} user={user} users={users} index={index} username={username} socket={socket} myTurn={myTurn} />
 			))}
 		</div>
 		{/* Example usage */}

@@ -41,12 +41,16 @@ def handle_change_username(data):
 @socketio.on('change_inputValue')
 def handle_change_inputValue(data):
     inputValue = data['inputValue']
+    # Implement only players turn can move, might need another enpoint for clear
     print("INPUT!", inputValue)
     with lock:
+        player_turn = connected_users[list(connected_users.keys())[current_player_index[0]]]['id']
+        print("TURN", player_turn, request.sid, player_turn == request.sid)
+        # Make sure user is in game, and second verifies turn
         if request.sid in connected_users:
             connected_users[request.sid]['input'] = inputValue
-    print(str(connected_users))
-    emit('input_changed', {'users': list(connected_users.values())}, broadcast=True)
+            print(str(connected_users))
+            emit('input_changed', {'users': list(connected_users.values())}, broadcast=True)
 
 def send_turn(connected_users, lock, current_player_index):
     while True:

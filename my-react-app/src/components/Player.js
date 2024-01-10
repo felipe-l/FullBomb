@@ -3,12 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import './player.css';
 
-const Player = ({ user, users, index, username, socket}) => {
+const Player = ({ user, users, index, username, socket, myTurn}) => {
   const [inputValue, setInputValue] = useState('');
   console.log("index" + index)
   useEffect(() => {
+    if (myTurn) {
+      setInputValue('');
+      socket.current.emit('change_inputValue', { inputValue: ""});
+    }
+  }, [myTurn]);
+
+  useEffect(() => {
     console.log(username + " " + user.username)
-    if (username == user.username) {
+    if (username == user.username && myTurn) {
       const handleKeyPress = (event) => { 
         if (event.key === 'Enter') {
           const finalGuess = inputValue;
@@ -26,7 +33,7 @@ const Player = ({ user, users, index, username, socket}) => {
         window.removeEventListener('keypress', handleKeyPress);
       };
     }
-  }, [inputValue]);
+  }, [inputValue, myTurn]);
 
   return (
     <div className="player" key={user.id}>
