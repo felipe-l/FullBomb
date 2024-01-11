@@ -15,7 +15,7 @@ const BombRoom = () => {
 
 	useEffect(() => {
 		if (!socket.current) {
-			socket.current = io("http://localhost:5000");
+			socket.current = io(process.env.REACT_APP_WS_API_URL);
 		}
 		socket.current.on('message', (data) => {
 			setResponse(data.response);
