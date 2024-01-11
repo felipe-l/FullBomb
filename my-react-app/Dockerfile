@@ -17,7 +17,7 @@ COPY . .
 EXPOSE 3000
 
 # Define environment variable
-ENV REACT_APP_API_URL http://localhost:5000
+ENV REACT_APP_WS_API_URL http://bombparty.online:5000
 
 # Run the app
 CMD ["npm", "start"]

@@ -35,34 +35,24 @@ def handle_change_username(data):
     username = data['username']
     with lock:
         connected_users[str(request.sid)] = {'id': str(request.sid), 'username':username, 'input':None}
-    print(str(connected_users))
     emit('user_joined', {'users': list(connected_users.values())}, broadcast=True)
 
 @socketio.on('change_inputValue')
 def handle_change_inputValue(data):
-    inputValue = data['inputValue']
-    # Implement only players turn can move, might need another enpoint for clear
-    print("INPUT!", inputValue)
-    with lock:
-        player_turn = connected_users[list(connected_users.keys())[current_player_index[0]]]['id']
-        print("TURN", player_turn, request.sid, player_turn == request.sid)
-        # Make sure user is in game, and second verifies turn
-        if request.sid in connected_users:
-            connected_users[request.sid]['input'] = inputValue
-            print(str(connected_users))
-            emit('input_changed', {'users': list(connected_users.values())}, broadcast=True)
+    if request.sid == connected_users[list(connected_users.keys())[current_player_index[0]]]["id"]:
+        inputValue = data['inputValue']
+        with lock:
+            if request.sid in connected_users:
+                connected_users[request.sid]['input'] = inputValue
+        emit('input_changed', {'users': list(connected_users.values())}, broadcast=True)
 
 def send_turn(connected_users, lock, current_player_index):
     while True:
         with lock:
-            print("RANSENDTURN", len(connected_users))
-            print("PAST", current_player_index)
             if connected_users:
-                player_turn = connected_users[list(connected_users.keys())[current_player_index[0]]]
-                print(player_turn)
-                socketio.emit('player_turn', {'player_turn': player_turn}, namespace='/')
-                print("EMMITED")
                 current_player_index[0] = (current_player_index[0] + 1) % len(connected_users)
+                player_turn = connected_users[list(connected_users.keys())[current_player_index[0]]]
+                socketio.emit('player_turn', {'player_turn': player_turn}, namespace='/')
         time.sleep(5)
 
 if __name__ == "__main__":
