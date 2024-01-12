@@ -19,18 +19,22 @@ const Player = ({ user, users, index, username, socket, myTurn}) => {
       const handleKeyPress = (event) => { 
         if (event.key === 'Enter') {
           const finalGuess = inputValue;
+          socket.current.emit('submit_guess', { inputValue: finalGuess });
           setInputValue('');
-          socket.current.emit('change_inputValue', { inputValue: "" });
-        } else if (event.key.match(/^[a-zA-Z]+$/)) {
+        } else if (event.key.match(/^[a-zA-Z]$/)) {
           const updatedInputValue = inputValue + event.key;
+          setInputValue(updatedInputValue);
+          socket.current.emit('change_inputValue', { inputValue: updatedInputValue });
+        } else if (event.key === 'Backspace' && inputValue.length > 0) {
+          const updatedInputValue = inputValue.slice(0, -1);
           setInputValue(updatedInputValue);
           socket.current.emit('change_inputValue', { inputValue: updatedInputValue });
         }
       };
 
-      window.addEventListener('keypress', handleKeyPress);
+      window.addEventListener('keydown', handleKeyPress);
       return () => {
-        window.removeEventListener('keypress', handleKeyPress);
+        window.removeEventListener('keydown', handleKeyPress);
       };
     }
   }, [inputValue, myTurn]);
