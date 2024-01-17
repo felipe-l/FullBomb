@@ -12,6 +12,7 @@ const BombRoom = () => {
 	const socket = useRef(null);
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [myTurn, setMyTurn] = useState(false);
+	const [timer, setTimer] = useState(5);
 
 	useEffect(() => {
 		if (!socket.current) {
@@ -28,6 +29,10 @@ const BombRoom = () => {
 			console.log(data.users);
 			setUsers(data.users);
 		})
+		socket.current.on('timer', (data) => {
+			setTimer(data.timer)
+		})
+
 		if (username !== "") {
 			socket.current.emit('change_username', {username: username});
 		}
@@ -104,6 +109,7 @@ const BombRoom = () => {
 			{/* Bomb icon or any other representation */}
 			<div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white z-1">
 			💣
+			{timer}
 			</div>
 			{/* Arrow pointing to the current player */}
 			{currentPlayerIndex !== null && (

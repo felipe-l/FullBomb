@@ -58,7 +58,7 @@ const Player = ({ user, users, index, username, socket, myTurn}) => {
 				zIndex: -1,
 				}}
 			>
-				{user.username}
+				{user.username} - {user.points}
 			</div>
     </div>
   );
