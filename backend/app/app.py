@@ -47,7 +47,8 @@ def handle_change_username(data):
         else:
             rooms[room]['connected_users'][request.sid] = {'id': request.sid, 'username': username, 'input': None, 'points': 0}
     emit('user_joined', {'users': list(rooms[room]['connected_users'].values())}, room=room)
-http://bombparty.online/alue')
+
+@socketio.on('change_inputValue')
 def handle_change_inputValue(data):
     room = userRoom[request.sid]
     if request.sid == rooms[room]['connected_users'][list(rooms[room]['connected_users'].keys())[rooms[room]['current_player_index']]]["id"]:
