@@ -42,11 +42,12 @@ def handle_change_username(data):
         userRoom[request.sid] = room
         if room not in rooms:
             rooms[room] = {'connected_users': {}, "current_player_index": 0, "timer": 5, "gameStart": False} 
+            rooms[room]['connected_users'][request.sid] = {'id': request.sid, 'username': username, 'input': None, 'points': 0}
             socketio.start_background_task(send_turn, room)
-        rooms[room]['connected_users'][request.sid] = {'id': request.sid, 'username': username, 'input': None, 'points': 0}
+        else:
+            rooms[room]['connected_users'][request.sid] = {'id': request.sid, 'username': username, 'input': None, 'points': 0}
     emit('user_joined', {'users': list(rooms[room]['connected_users'].values())}, room=room)
-
-@socketio.on('change_inputValue')
+http://bombparty.online/alue')
 def handle_change_inputValue(data):
     room = userRoom[request.sid]
     if request.sid == rooms[room]['connected_users'][list(rooms[room]['connected_users'].keys())[rooms[room]['current_player_index']]]["id"]:
