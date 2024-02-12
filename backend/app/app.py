@@ -90,8 +90,10 @@ def send_turn(room):
                 socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
                 socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart']}, room=room)
             elif len(rooms[room]['connected_users']) > 1:
+                rooms[room]['gameStart'] = True
                 rooms[room]['timer'] -= 1
                 socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
+                socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart']}, room=room)
             elif len(rooms[room]['connected_users']) == 1:
                 rooms[room]['gameStart'] = False
                 rooms[room]['timer'] = 5
