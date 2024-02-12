@@ -13,6 +13,7 @@ const Player = ({ user, users, index, username, socket, myTurn}) => {
   }, [myTurn]);
 
   useEffect(() => {
+    console.log("MY TURN " + myTurn)
     if (username == user.username && myTurn) {
       const handleKeyPress = (event) => { 
         if (event.key === 'Enter') {

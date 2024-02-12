@@ -35,6 +35,7 @@ const BombRoom = () => {
 
 		socket.current.on('gameStart', (data) => {
 			setGameStart(data.gameStart)
+			console.log(data.gameStart)
 		})
 
 		if (username !== "") {
