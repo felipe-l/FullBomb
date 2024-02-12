@@ -12,34 +12,39 @@ const BombRoom = () => {
 	const socket = useRef(null);
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [myTurn, setMyTurn] = useState(false);
+	const [gameStart, setGameStart] = useState(false);
 	const [timer, setTimer] = useState(5);
 	useEffect(() => {
 		if (!socket.current) {
-			socket.current = io(`${process.env.REACT_APP_WS_API_URL}`, { query: "foo=bar" });
+			socket.current = io(`${process.env.REACT_APP_WS_API_URL}`, { query: `foo=${window.location.pathname}` });
 		}
 		socket.current.on('message', (data) => {
 			setResponse(data.response);
 		})
 		socket.current.on('user_joined', (data) => {
-			console.log(data.users);
+			//console.log(data.users);
 			setUsers(data.users);
 		})
 		socket.current.on('input_changed', (data) => {
-			console.log(data.users);
+			//console.log(data.users);
 			setUsers(data.users);
 		})
 		socket.current.on('timer', (data) => {
 			setTimer(data.timer)
 		})
 
+		socket.current.on('gameStart', (data) => {
+			setGameStart(data.gameStart)
+		})
+
 		if (username !== "") {
-			socket.current.emit('change_username', {username: username});
+			socket.current.emit('change_username', {username: username, room: window.location.pathname});
 		}
 		return () => {
-			if (socket.current) {
-				socket.current.disconnect();
-				socket.current = null;
-			}
+			// if (socket.current) {
+			// 	socket.current.disconnect();
+			// 	socket.current = null;
+			// }
 		};
 	}, [username]);
 
@@ -48,10 +53,11 @@ const BombRoom = () => {
 			let playerIndex = -1;
 			
 			for (let i = 0; i < users.length; i++) {
+				console.log(data.player_turn.id)
 				if (users[i].id == data.player_turn.id) {
 					//If the turn id is ours, set myTurn to True.
+					console.log("IN")
 					setMyTurn(users[i].id === socket.current.id);
-					console.log("MY TURN = " + users[i].id + " " + socket.current.id + " " + (users[i].id === socket.current.id) + " " + myTurn);
 					playerIndex = i;
 					break;
 				}
@@ -97,7 +103,6 @@ const BombRoom = () => {
 	const removeUser = (usernameToRemove) => {
 		// Create a new array excluding the user with the specified username
 		const updatedUsers = users.filter(user => user != usernameToRemove);
-		console.log(...updatedUsers)
 		// Update the state with the new array
 		setUsers(updatedUsers);
 	};
@@ -118,9 +123,8 @@ const BombRoom = () => {
 				</div>
 			)}
 
-			{console.log("All users: ", users)}
 			{users.map((user, index) => (
-				<Player key={user.id} user={user} users={users} index={index} username={username} socket={socket} myTurn={myTurn} />
+				<Player key={user.id} user={user} users={users} index={index} username={username} socket={socket} myTurn={myTurn && gameStart} />
 			))}
 		</div>
 		{/* Example usage */}

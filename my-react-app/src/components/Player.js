@@ -5,28 +5,29 @@ import './player.css';
 
 const Player = ({ user, users, index, username, socket, myTurn}) => {
   const [inputValue, setInputValue] = useState('');
-  console.log("index" + index)
   useEffect(() => {
-    if (myTurn) {
+    if (myTurn && user.username == username) {
       setInputValue('');
       socket.current.emit('change_inputValue', { inputValue: ""});
     }
   }, [myTurn]);
 
   useEffect(() => {
-    console.log(username + " " + user.username)
     if (username == user.username && myTurn) {
       const handleKeyPress = (event) => { 
         if (event.key === 'Enter') {
           const finalGuess = inputValue;
-          socket.current.emit('submit_guess', { inputValue: finalGuess });
           setInputValue('');
+          socket.current.emit('submit_guess', { inputValue: finalGuess });
         } else if (event.key.match(/^[a-zA-Z]$/)) {
           const updatedInputValue = inputValue + event.key;
           setInputValue(updatedInputValue);
           socket.current.emit('change_inputValue', { inputValue: updatedInputValue });
-        } else if (event.key === 'Backspace' && inputValue.length > 0) {
-          const updatedInputValue = inputValue.slice(0, -1);
+        } else if (event.key === 'Backspace') {
+          let updatedInputValue = "";
+          if (inputValue.length > 0) {
+            updatedInputValue = inputValue.slice(0, -1);
+          }
           setInputValue(updatedInputValue);
           socket.current.emit('change_inputValue', { inputValue: updatedInputValue });
         }
