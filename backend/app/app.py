@@ -2,52 +2,52 @@ import requests
 
 # app.py (Flask backend with Flask-SocketIO)
 from flask import Flask, request
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from threading import Timer, Lock
 import time
 import os
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=True)
 
-connected_users = {}
-current_player_index = [0]
-newTask = [False]
-timer = 5
+rooms = {}
+
 lock = Lock()
 
 @socketio.on('connect')
 def handle_connect():
-    print('Client connected')
-    emit('message', {'response': 'You are connected.'})
-    if not newTask[0]:
-        socketio.start_background_task(send_turn, connected_users, lock, current_player_index, timer)  # Start a new background task
-        newTask[0] = True
- 
+    print(f'Client connection request: {request.args}')
+    path = request.args.get('foo')
+    print(f'Client connected with path: {path}')
+    # Additional connection handling logic here
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print('Client disconnected', request.sid)
+    room = request.args.get('room')
+    print(f'Client disconnected from room: {room}', request.sid)
     with lock:
-        if request.sid in connected_users:
-            del connected_users[str(request.sid)]
-            emit('user_joined', {'users': list(connected_users.values())}, broadcast=True)
+        if room in rooms and request.sid in rooms[room]['connected_users']:
+            leave_room(room)
+            del rooms[room]['connected_users'][str(request.sid)]
+            emit('user_joined', {'users': list(rooms[room]['connected_users'].values())}, room=room)
 
 @socketio.on('change_username')
 def handle_change_username(data):
+    room = data['room']
     username = data['username']
     with lock:
-        connected_users[str(request.sid)] = {'id': str(request.sid), 'username':username, 'input':None, 'points': 0}
-    emit('user_joined', {'users': list(connected_users.values())}, broadcast=True)
+        rooms[room]['connected_users'][str(request.sid)] = {'id': str(request.sid), 'username':username, 'input':None, 'points': 0}
+    emit('user_joined', {'users': list(rooms[room]['connected_users'].values())}, room=room)
 
 @socketio.on('change_inputValue')
 def handle_change_inputValue(data):
-    if request.sid == connected_users[list(connected_users.keys())[current_player_index[0]]]["id"]:
+    room = data['room']
+    if request.sid == rooms[room]['connected_users'][list(rooms[room]['connected_users'].keys())[rooms[room]['current_player_index']]]["id"]:
         inputValue = data['inputValue']
         with lock:
-            if request.sid in connected_users:
-                connected_users[request.sid]['input'] = inputValue
-        emit('input_changed', {'users': list(connected_users.values())}, broadcast=True)
+            if request.sid in rooms[room]['connected_users']:
+                rooms[room]['connected_users'][request.sid]['input'] = inputValue
+        emit('input_changed', {'users': list(rooms[room]['connected_users'].values())}, room=room)
 
 def check_word_exists(word):
     response = requests.get(f"https://api.dictionaryapi.dev/api/v2/entries/en/{word}")
@@ -62,28 +62,28 @@ def check_word_exists(word):
 
 @socketio.on('submit_guess')
 def handle_submit_guess(data):
-    if request.sid == connected_users[list(connected_users.keys())[current_player_index[0]]]["id"]:
+    room = data['room']
+    if request.sid == rooms[room]['connected_users'][list(rooms[room]['connected_users'].keys())[rooms[room]['current_player_index']]]["id"]:
         guess = data['inputValue']
         with lock:
-            if request.sid in connected_users:
+            if request.sid in rooms[room]['connected_users']:
                 if check_word_exists(guess):
-                    connected_users[request.sid]['input'] = ""
-                    connected_users[request.sid]['points'] += 1
+                    rooms[room]['connected_users'][request.sid]['input'] = ""
+                    rooms[room]['connected_users'][request.sid]['points'] += 1
+        emit('input_changed', {'users': list(rooms[room]['connected_users'].values())}, room=room)
 
-        emit('input_changed', {'users': list(connected_users.values())}, broadcast=True)
-
-def send_turn(connected_users, lock, current_player_index, timer):
+def send_turn(room):
     while True:
         with lock:
-            if connected_users and timer == 1:
-                current_player_index[0] = (current_player_index[0] + 1) % len(connected_users)
-                player_turn = connected_users[list(connected_users.keys())[current_player_index[0]]]
-                socketio.emit('player_turn', {'player_turn': player_turn}, namespace='/')
-                timer = 5
-                socketio.emit('timer', {'timer': timer}, namespace='/')
-            elif len(connected_users) > 1:
-                timer -= 1
-                socketio.emit('timer', {'timer': timer}, namespace='/')
+            if rooms[room]['connected_users'] and rooms[room]['timer'] == 1:
+                rooms[room]['current_player_index'] = (rooms[room]['current_player_index'] + 1) % len(rooms[room]['connected_users'])
+                player_turn = rooms[room]['connected_users'][list(rooms[room]['connected_users'].keys())[rooms[room]['current_player_index']]]
+                socketio.emit('player_turn', {'player_turn': player_turn}, room=room)
+                rooms[room]['timer'] = 5
+                socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
+            elif len(rooms[room]['connected_users']) > 1:
+                rooms[room]['timer'] -= 1
+                socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
         time.sleep(1)
 
 if __name__ == "__main__":

@@ -13,10 +13,9 @@ const BombRoom = () => {
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [myTurn, setMyTurn] = useState(false);
 	const [timer, setTimer] = useState(5);
-
 	useEffect(() => {
 		if (!socket.current) {
-			socket.current = io(process.env.REACT_APP_WS_API_URL);
+			socket.current = io(`${process.env.REACT_APP_WS_API_URL}`, { query: "foo=bar" });
 		}
 		socket.current.on('message', (data) => {
 			setResponse(data.response);
