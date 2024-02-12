@@ -100,8 +100,6 @@ def send_turn(room):
                 rooms[room]['timer'] = 5
                 socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
                 socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart']}, room=room)
-
-            print(len(rooms[room]["connected_users"]))
             elif len(rooms[room]['connected_users'])== 0:
                 del rooms[room]
                 break 
