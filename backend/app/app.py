@@ -107,4 +107,9 @@ def send_turn(room):
         time.sleep(1)
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    if os.getenv('FLASK_ENV') == 'production':
+        ssl_context = ('/etc/letsencrypt/live/bombparty.online/fullchain.pem',
+                        '/etc/letsencrypt/live/bombparty.online/privkey.pem')
+        socketio.run(app, debug=True, ssl_context=ssl_context)
+    else:
+        socketio.run(app, debug=True)

@@ -16,7 +16,8 @@ const BombRoom = () => {
 	const [timer, setTimer] = useState(5);
 	useEffect(() => {
 		if (!socket.current) {
-			socket.current = io(`${process.env.REACT_APP_WS_API_URL}`, { query: `foo=${window.location.pathname}` });
+			const isSecure = process.env.REACT_APP_WS_API_URL.startsWith('https');
+			socket.current = io(`${process.env.REACT_APP_WS_API_URL}`, {secure: isSecure}, { query: `foo=${window.location.pathname}` });
 		}
 		socket.current.on('message', (data) => {
 			setResponse(data.response);
