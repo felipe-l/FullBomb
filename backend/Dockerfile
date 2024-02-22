@@ -20,6 +20,8 @@ EXPOSE 5000
 # Define environment variable for Flask
 ENV FLASK_APP=app.app
 ENV FLASK_ENV=production
+ENV FLASK_DEBUG=1
+ENV WDS_SOCKET_PORT=0
 
 # Run app.py when the container launches
-CMD ["flask", "run", "--host=0.0.0.0"]
+CMD ["flask", "run", "--host=0.0.0.0", "--cert=fullchain.pem", "--key=privkey.pem"]

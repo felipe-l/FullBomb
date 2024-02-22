@@ -17,7 +17,8 @@ COPY . .
 EXPOSE 3000
 
 # Define environment variable
-ENV REACT_APP_WS_API_URL https://bombparty.online:5000
+ENV REACT_APP_WS_API_URL wss://bombparty.online:5000
+ENV WDS_SOCKET_PORT=0
 
 # Run the app
 CMD ["npm", "start"]

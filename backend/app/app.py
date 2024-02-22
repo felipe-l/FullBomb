@@ -10,13 +10,12 @@ import os
 
 logging.getLogger('werkzeug').setLevel(logging.ERROR)
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=False)
+socketio = SocketIO(app, cors_allowed_origins="*", engineio_logger=False, manage_session=False)
 
 rooms = {}
 userRoom = {}
 
 lock = Lock()
-
 @socketio.on('connect')
 def handle_connect():
     room = request.args.get('foo')
@@ -108,8 +107,8 @@ def send_turn(room):
 
 if __name__ == "__main__":
     if os.getenv('FLASK_ENV') == 'production':
-        ssl_context = ('/etc/letsencrypt/live/bombparty.online/fullchain.pem',
-                        '/etc/letsencrypt/live/bombparty.online/privkey.pem')
+        ssl_context = ('fullchain.pem',
+                        'privkey.pem')
         socketio.run(app, debug=True, ssl_context=ssl_context)
     else:
         socketio.run(app, debug=True)

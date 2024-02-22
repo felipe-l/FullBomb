@@ -17,7 +17,12 @@ const BombRoom = () => {
 	useEffect(() => {
 		if (!socket.current) {
 			const isSecure = process.env.REACT_APP_WS_API_URL.startsWith('https');
-			socket.current = io(`${process.env.REACT_APP_WS_API_URL}`, {secure: isSecure}, { query: `foo=${window.location.pathname}` });
+			socket.current = io(process.env.REACT_APP_WS_API_URL, {
+				secure: true,
+				transports: ['websocket', 'polling'],
+				query: `foo=${window.location.pathname}`,
+				withCredentials: true // Important for CORS
+			});
 		}
 		socket.current.on('message', (data) => {
 			setResponse(data.response);
