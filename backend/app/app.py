@@ -27,11 +27,17 @@ def handle_connect():
 def handle_disconnect():
     room = request.args.get('foo')
     print(f'Client disconnected from room: {room}, SID: {request.sid}')
+    reqUsername = rooms[room]['connected_users'][request.sid]['username']
     with lock:
         if room in rooms and request.sid in rooms[room]['connected_users']:
             leave_room(room)
             del rooms[room]['connected_users'][request.sid]
             emit('user_joined', {'users': list(rooms[room]['connected_users'].values())}, room=room)
+            print("THE USER LEAVING WAS ", reqUsername, "and the admin is", rooms[room]['admin'])
+            if rooms[room]['admin'] == reqUsername and len(rooms[room]['connected_users']) > 0:
+                newAdminUsername = list(rooms[room]['connected_users'].values())[0]['username']
+                rooms[room]['admin'] = newAdminUsername
+            emit('gameStart', {'gameStart':rooms[room]['gameStart'], 'admin':rooms[room]['admin']}, room=room)
 
 @socketio.on('change_username')
 def handle_change_username(data):
@@ -40,7 +46,7 @@ def handle_change_username(data):
     with lock:
         userRoom[request.sid] = room
         if room not in rooms:
-            rooms[room] = {'connected_users': {}, "current_player_index": 0, "timer": 5, "gameStart": False} 
+            rooms[room] = {'connected_users': {}, "current_player_index": 0, "timer": 5, "gameStart": False, "admin": username} 
             rooms[room]['connected_users'][request.sid] = {'id': request.sid, 'username': username, 'input': None, 'points': 0}
             socketio.start_background_task(send_turn, room)
         else:
@@ -79,27 +85,38 @@ def handle_submit_guess(data):
                     rooms[room]['connected_users'][request.sid]['points'] += 1
         emit('input_changed', {'users': list(rooms[room]['connected_users'].values())}, room=room)
 
+@socketio.on("start_game")
+def handle_start_game():
+    room = userRoom[request.sid]
+    reqUsername = rooms[room]['connected_users'][request.sid]['username']
+    if reqUsername == rooms[room]['admin']:
+        for user in rooms[room]["connected_users"].values():
+            user["points"] = 0
+            user["input"] = ""
+        rooms[room]['timer'] = 5
+        rooms[room]["gameStart"] = True
+    emit('gameStart', {'gameStart':rooms[room]['gameStart'], 'admin':rooms[room]['admin']}, room=room)
+
 def send_turn(room):
     while True:
         with lock:
             if rooms[room]['connected_users'] and rooms[room]['timer'] == 1:
-                rooms[room]['gameStart'] = True
+                ### I don't understand why this line was added, game should never reset to false here.
+                #rooms[room]['gameStart'] = True
                 rooms[room]['current_player_index'] = (rooms[room]['current_player_index'] + 1) % len(rooms[room]['connected_users'])
                 player_turn = rooms[room]['connected_users'][list(rooms[room]['connected_users'].keys())[rooms[room]['current_player_index']]]
                 socketio.emit('player_turn', {'player_turn': player_turn}, room=room)
                 rooms[room]['timer'] = 5
                 socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
-                socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart']}, room=room)
-            elif len(rooms[room]['connected_users']) > 1:
-                rooms[room]['gameStart'] = True
+                socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart'], 'admin': rooms[room]['admin']}, room=room)
+            elif len(rooms[room]['connected_users']) > 1 and rooms[room]["gameStart"]:
                 rooms[room]['timer'] -= 1
                 socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
-                socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart']}, room=room)
+                socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart'], 'admin': rooms[room]['admin']}, room=room)
             elif len(rooms[room]['connected_users']) == 1:
                 rooms[room]['gameStart'] = False
-                rooms[room]['timer'] = 5
-                socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
-                socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart']}, room=room)
+                #socketio.emit('timer', {'timer': rooms[room]['timer']}, room=room)
+                socketio.emit('gameStart', {"gameStart": rooms[room]['gameStart'], 'admin': rooms[room]['admin']}, room=room)
             elif len(rooms[room]['connected_users'])== 0:
                 del rooms[room]
                 break 

@@ -13,6 +13,7 @@ const BombRoom = () => {
 	const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0);
 	const [myTurn, setMyTurn] = useState(false);
 	const [gameStart, setGameStart] = useState(false);
+	const [gameAdmin, setGameAdmin] = useState("")
 	const [timer, setTimer] = useState(5);
 	useEffect(() => {
 		if (!socket.current) {
@@ -41,6 +42,7 @@ const BombRoom = () => {
 
 		socket.current.on('gameStart', (data) => {
 			setGameStart(data.gameStart)
+			setGameAdmin(data.admin)
 			console.log(data.gameStart)
 		})
 
@@ -120,7 +122,13 @@ const BombRoom = () => {
 			{/* Bomb icon or any other representation */}
 			<div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center text-white z-1">
 			💣
-			{timer}
+			{gameStart ? (
+				<span>{timer}</span>
+			) : username === gameAdmin ? (
+				<button onClick={() => socket.current.emit('start_game')}>Start Game</button>
+			) : (
+				<span>Waiting for host to start</span>
+			)}
 			</div>
 			{/* Arrow pointing to the current player */}
 			{currentPlayerIndex !== null && (
